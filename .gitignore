@@ -1,0 +1,56 @@
+# === Data mentah & hasil olahan ===
+# Data di-download ulang otomatis lewat notebooks/00_download_data.ipynb,
+# jadi tidak perlu ikut ter-push (ukurannya besar, terutama geolocation ~58MB)
+data/raw/*.csv
+data/processed/*.csv
+
+# Tetap track folder-nya meski isinya kosong
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+build/
+dist/
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# === Jupyter Notebook ===
+.ipynb_checkpoints/
+
+# === Kagglehub cache (kalau tidak sengaja kepakai di dalam repo) ===
+.cache/kagglehub/
+
+# === Credentials — JANGAN PERNAH ikut ter-commit ===
+kaggle.json
+access_token
+.env
+*.pem
+*.key
+
+# === Power BI ===
+# .pbix TIDAK di-ignore karena memang mau dipush sebagai deliverable.
+# Tapi file temporary/lock Power BI perlu di-ignore:
+~$*.pbix
+*.pbix.bak
+
+# === OS junk files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === IDE / Editor ===
+.vscode/
+.idea/
+*.swp
+
+# === Logs ===
+*.log
+logs/
