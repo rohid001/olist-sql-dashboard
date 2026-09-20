@@ -69,7 +69,7 @@ ORDER BY hari_sejak_order_terakhir DESC;
 
 WITH customer_orders AS (
     SELECT
-        c.csutomer_unique_id,
+        c.customer_unique_id,
         o.order_id,
         o.order_purchase_timestamp
     FROM orders o
