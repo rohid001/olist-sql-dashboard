@@ -1,4 +1,4 @@
-# Insight & Rekomendasi Bisnis — Dashboard Olist E-Commerce
+# Insight & Rekomendasi Bisnis-Dashboard Olist E-Commerce
 
 ---
 
@@ -31,7 +31,7 @@ Platform ini punya pertumbuhan revenue yang solid dari 2016-2018, tapi **struktu
 - Alokasikan budget marketing lebih besar menjelang November, berdasarkan pola tahun sebelumnya
 - Evaluasi ulang kategori yang menurun tajam (`cds_dvds_musicals`, `security_and_services`, `tablets_printing_image`), seperti pertimbangkan mengurangi fokus inventori/seller di kategori ini
 - Kategori kecil yang tumbuh pesat (`small_appliances_home_oven`, `diapers_and_hygiene`) layak dipantau sebagai kandidat ekspansi, tapi jangan buat keputusan besar dahulu, basis datanya masih kecil (revenue 2017 di bawah R$1.000 untuk beberapa kategori ini)
-- **Catatan penting:** pola musiman resmi (Q5) tidak valid dijadikan dasar keputusan "musim sepi September–Desember" — itu artifact keterbatasan cakupan data (lihat `methodology.md`), bukan perilaku belanja asli
+- **Catatan penting:** pola musiman resmi (Q5) tidak valid dijadikan dasar keputusan "musim sepi September–Desember", itu artifact keterbatasan cakupan data (lihat `methodology.md`), bukan perilaku belanja asli
 
 ---
 

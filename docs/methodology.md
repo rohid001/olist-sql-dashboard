@@ -1,6 +1,6 @@
 # Metodologi — Dashboard Bisnis SQL Olist
 
-Dokumen ini mencatat keputusan desain teknis sepanjang project dan alasannya, supaya bisa dijelaskan ke recruiter/interviewer tanpa perlu mengingat-ingat lagi.
+Dokumen ini mencatat keputusan desain teknis sepanjang project dan alasannya.
 
 ---
 
@@ -8,8 +8,8 @@ Dokumen ini mencatat keputusan desain teknis sepanjang project dan alasannya, su
 
 Proses dibagi jadi dua tahap yang sengaja dipisah:
 
-1. **Fase 2 — Load mentah tanpa constraint.** 9 tabel raw dibuat tanpa PRIMARY KEY/FOREIGN KEY sama sekali, supaya proses load 9 CSV tidak gagal karena masalah kualitas data yang belum diketahui.
-2. **Fase 3 — Audit dulu, baru constrain.** Setelah tahu persis di mana masalahnya (lewat query SQL langsung ke Postgres), constraint ditambahkan secara sadar — bukan trial-and-error yang berhenti di tengah jalan setiap ketemu error.
+1. **Fase 2-Load mentah tanpa constraint.** 9 tabel raw dibuat tanpa PRIMARY KEY/FOREIGN KEY sama sekali, supaya proses load 9 CSV tidak gagal karena masalah kualitas data yang belum diketahui.
+2. **Fase 3-Audit dulu, baru constrain.** Setelah tahu persis di mana masalahnya (lewat query SQL langsung ke Postgres), constraint ditambahkan secara sadar — bukan trial-and-error yang berhenti di tengah jalan setiap ketemu error.
 
 Alasan urutan ini: kalau constraint dipasang dari awal, proses load akan gagal di tengah jalan begitu ketemu baris bermasalah, tanpa tahu masalahnya seberapa luas. Dengan audit dulu, semua masalah terpetakan sekaligus sebelum keputusan desain diambil.
 
@@ -44,7 +44,7 @@ Alasan urutan ini: kalau constraint dipasang dari awal, proses load akan gagal d
 ---
 
 ### 6. F Score di RFM — business rule, bukan NTILE
-**Temuan:** Validasi silang SQL vs Python menunjukkan F score (frequency) cuma cocok 22,6% antar dua cara hitung, padahal R score dan M score cocok >99%. Penyebabnya: **97% pelanggan (90.556 dari 93.357) punya `frequency = 1`** — nilai yang nyaris konstan. `NTILE(5) OVER (ORDER BY frequency ASC)` tanpa tiebreaker terpaksa memecah kelompok bernilai identik itu ke 5 kuintil secara sembarang, sehingga dua pelanggan yang sama-sama beli 1x bisa dapat skor F yang beda-beda tanpa alasan nyata — hasilnya juga tidak reproducible (beda tiap kali query dijalankan ulang).
+**Temuan:** Validasi silang SQL vs Python menunjukkan F score (frequency) cuma cocok 22,6% antar dua cara hitung, padahal R score dan M score cocok >99%. Penyebabnya: **97% pelanggan (90.556 dari 93.357) punya `frequency = 1`** — nilai yang nyaris konstan. `NTILE(5) OVER (ORDER BY frequency ASC)` tanpa tiebreaker terpaksa memecah kelompok bernilai identik itu ke 5 kuintil secara acak, sehingga dua pelanggan yang sama-sama beli 1x bisa dapat skor F yang beda-beda tanpa alasan nyata, sehingga hasilnya juga tidak reproducible (beda tiap kali query dijalankan ulang).
 **Keputusan:** F score diganti dari NTILE ke business rule tetap: `frequency=1 → skor 1`, `frequency=2 → skor 3`, `frequency>=3 → skor 5`.
 **Alasan:** Kuantil (NTILE) cocok untuk variabel kontinu/beragam seperti Recency dan Monetary, tapi tidak cocok untuk variabel yang sangat skewed dan diskrit seperti Frequency di dataset ini. R score dan M score tetap pakai NTILE, tapi ditambah tiebreaker (`customer_unique_id`) supaya hasilnya deterministik.
 
