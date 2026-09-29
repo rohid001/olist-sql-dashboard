@@ -1,6 +1,6 @@
-# Dashboard Bisnis SQL — Olist Brazilian E-Commerce
+# Dashboard Bisnis SQL - Olist Brazilian E-Commerce
 
-Portfolio Data Analyst: dashboard bisnis berbasis **SQL kompleks (CTE, window function, multi-table join)** di atas dataset e-commerce nyata, dibangun untuk menjawab pertanyaan bisnis konkret — bukan sekadar kumpulan chart.
+Portfolio Data Analyst: dashboard bisnis berbasis **SQL kompleks (CTE, window function, multi-table join)** di atas dataset e-commerce, dibangun untuk menjawab pertanyaan bisnis konkret, bukan sekadar kumpulan chart.
 
 ![SQL](https://img.shields.io/badge/SQL-PostgreSQL-336791) ![Power BI](https://img.shields.io/badge/Dashboard-Power%20BI-F2C811) ![Python](https://img.shields.io/badge/Data%20Prep-Python-3776AB)
 
@@ -23,13 +23,13 @@ Portfolio Data Analyst: dashboard bisnis berbasis **SQL kompleks (CTE, window fu
 
 ## Latar Belakang
 
-Project ini dibuat untuk mensimulasikan pekerjaan seorang Data Analyst end-to-end: mulai dari merumuskan pertanyaan bisnis, audit kualitas data mentah, menulis SQL analitis (bukan sekadar `SELECT *`), sampai menyajikan hasilnya dalam dashboard interaktif yang bisa dipakai pengambil keputusan.
+Project ini dibuat untuk mensimulasikan pekerjaan seorang Data Analyst end-to-end: mulai dari merumuskan pertanyaan bisnis, audit kualitas data mentah, menulis SQL analitis, sampai menyajikan hasilnya dalam dashboard interaktif yang bisa dipakai pengambil keputusan.
 
-Fokus utamanya ada di **kedalaman SQL** — RFM segmentation, window function untuk growth rate, dan analisis churn — dengan Power BI berperan sebagai lapisan presentasi, bukan tempat logika bisnis di-compute ulang.
+Fokus utamanya ada di **kedalaman SQL**, mulai dari RFM segmentation, window function untuk growth rate, dan analisis churn, dengan Power BI berperan sebagai lapisan presentasi.
 
 ## Dataset
 
-**[Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)** dari Kaggle — data transaksi nyata (anonim) dari marketplace terbesar Brasil, periode 2016–2018.
+**[Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)** sumber dari Kaggle, data transaksi nyata (anonim) dari marketplace terbesar Brasil, periode 2016–2018.
 
 | Item | Detail |
 |---|---|
@@ -43,11 +43,11 @@ Fokus utamanya ada di **kedalaman SQL** — RFM segmentation, window function un
 
 Dashboard ini menjawab pertanyaan bisnis berikut (daftar lengkap 12 pertanyaan di `docs/business_questions.md`):
 
-1. **Customer Value** — Siapa pelanggan paling bernilai, dan bagaimana segmentasinya (RFM)?
-2. **Revenue Trend** — Bagaimana tren revenue bulanan, dan kategori apa yang tumbuh/turun dari 2017 ke 2018?
-3. **Seasonality** — Apakah ada pola musiman dalam revenue sepanjang tahun kalender?
-4. **Churn Signal** — Sinyal apa yang menunjukkan pelanggan berisiko churn, dan apakah itu berkorelasi dengan review score?
-5. **Category & Region** — Kategori produk apa yang paling profitable di tiap wilayah, dan wilayah mana yang paling bernilai dari sisi revenue?
+1. **Customer Value** - Siapa pelanggan paling bernilai, dan bagaimana segmentasinya (RFM)?
+2. **Revenue Trend** - Bagaimana tren revenue bulanan, dan kategori apa yang tumbuh/turun dari 2017 ke 2018?
+3. **Seasonality** - Apakah ada pola musiman dalam revenue sepanjang tahun kalender?
+4. **Churn Signal** - Sinyal apa yang menunjukkan pelanggan berisiko churn, dan apakah itu berkorelasi dengan review score?
+5. **Category & Region** - Kategori produk apa yang paling profitable di tiap wilayah, dan wilayah mana yang paling bernilai dari sisi revenue?
 
 ## Tech Stack
 
@@ -107,18 +107,18 @@ olist-sql-dashboard/
 
 ## Metodologi
 
-Pendekatan yang dipakai: **audit dulu, baru constrain** — bukan asumsi data bersih dari awal.
+Pendekatan yang dipakai: **audit dulu, baru constrain**, bukan asumsi data bersih dari awal.
 
-1. **Layer raw tanpa constraint.** 9 tabel dibuat tanpa `PRIMARY KEY`/`FOREIGN KEY` supaya proses load tidak gagal karena masalah data, dan masalah itu justru yang ingin ditemukan lewat audit — bukan disembunyikan lewat constraint yang menolak baris bermasalah di awal.
-2. **Audit sebelum menulis query analitis** — ditemukan: 814 `review_id` duplikat, 2 kategori produk tanpa terjemahan resmi, 775 order tanpa `order_items` (valid, bukan bug).
-3. **Constraint ditambahkan setelah tahu persis letak masalahnya** — `PRIMARY KEY`/`FOREIGN KEY`/`INDEX` final, plus `VIEW order_reviews_dedup` untuk menangani duplikasi tanpa mengubah data asli.
+1. **Layer raw tanpa constraint.** 9 tabel dibuat tanpa `PRIMARY KEY`/`FOREIGN KEY` supaya proses load tidak gagal karena masalah data, dan masalah itu justru yang ingin ditemukan lewat audit, bukan disembunyikan lewat constraint yang menolak baris bermasalah di awal.
+2. **Audit sebelum menulis query analitis** ditemukan: 814 `review_id` duplikat, 2 kategori produk tanpa terjemahan resmi, 775 order tanpa `order_items` (valid, bukan bug).
+3. **Constraint ditambahkan setelah tahu persis letak masalahnya** `PRIMARY KEY`/`FOREIGN KEY`/`INDEX` final, plus `VIEW order_reviews_dedup` untuk menangani duplikasi tanpa mengubah data asli.
 4. **`customer_unique_id`, bukan `customer_id`, dipakai untuk identitas pelanggan** — `customer_id` di dataset ini unik per *order*, bukan per pelanggan; salah pakai kolom ini akan merusak seluruh analisis RFM dan retensi.
 
 Detail lengkap + seluruh keputusan desain ada di [`docs/methodology.md`](docs/methodology.md).
 
 ## Dashboard
 
-Dashboard 5 halaman, dibangun dengan mengimpor **hasil query SQL langsung** ke Power BI (Native SQL statement) — bukan raw table + hitung ulang pakai DAX. Tujuannya supaya logika bisnis (RFM scoring, growth rate, churn threshold) tetap satu sumber kebenaran di SQL, dan Power BI murni jadi lapisan visualisasi.
+Dashboard 5 halaman, dibangun dengan mengimpor **hasil query SQL langsung** ke Power BI (Native SQL statement) bukan raw table + hitung ulang pakai DAX. Tujuannya supaya logika bisnis (RFM scoring, growth rate, churn threshold) tetap satu sumber kebenaran di SQL, dan Power BI murni jadi lapisan visualisasi.
 
 | Halaman | Isi |
 |---|---|
@@ -144,7 +144,7 @@ Dashboard 5 halaman, dibangun dengan mengimpor **hasil query SQL langsung** ke P
 
 ## Key Insights & Rekomendasi Bisnis
 
-Ringkasan — detail lengkap tiap poin (termasuk angka pendukung) ada di [`docs/insights_recommendations.md`](docs/insights_recommendations.md).
+Ringkasan - detail lengkap tiap poin (termasuk angka pendukung) ada di [`docs/insights_recommendations.md`](docs/insights_recommendations.md).
 
 - **97% pelanggan cuma order sekali.** Basis pelanggan berulang sangat tipis → peluang besar di program retensi/loyalitas dibanding terus akuisisi pelanggan baru.
 - **Revenue sangat terkonsentrasi secara geografis.** São Paulo menyumbang 38,3% dari total revenue nasional — sekitar 2,9x lipat state terbesar kedua (Rio de Janeiro).
