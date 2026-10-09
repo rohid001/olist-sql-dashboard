@@ -147,10 +147,10 @@ Dashboard 5 halaman, dibangun dengan mengimpor **hasil query SQL langsung** ke P
 Ringkasan - detail lengkap tiap poin (termasuk angka pendukung) ada di [`docs/insights_recommendations.md`](docs/insights_recommendations.md).
 
 - **97% pelanggan cuma order sekali.** Basis pelanggan berulang sangat tipis → peluang besar di program retensi/loyalitas dibanding terus akuisisi pelanggan baru.
-- **Revenue sangat terkonsentrasi secara geografis.** São Paulo menyumbang 38,3% dari total revenue nasional — sekitar 2,9x lipat state terbesar kedua (Rio de Janeiro).
-- **`health_beauty` adalah kategori paling konsisten unggul** — kategori dengan margin terbaik di 14 dari 27 state, jauh di atas kategori lain.
-- **"At Risk" churn (>180 hari tanpa order) 70,66% dari pelanggan — tapi mayoritas memang one-time buyer yang tidak berniat repeat**, bukan sinyal churn pelanggan loyal yang hilang. Rekomendasi: fokuskan strategi retensi ke segmen yang **pernah** repeat lalu berhenti, bukan ke seluruh populasi At Risk.
-- **Pola musiman bulanan (Sep–Des vs Jan–Agu) belum representatif** — Sep–Des cuma punya 1 tahun data penuh (2016 pendek, 2018 tidak sampai akhir tahun), sedangkan Jan–Agu punya 2 tahun. Perbedaan yang terlihat kemungkinan besar dari jumlah tahun data yang tidak seimbang, bukan pola musiman asli — caveat ini penting supaya tidak salah ambil keputusan.
+- **Revenue sangat terkonsentrasi secara geografis.** São Paulo menyumbang 38,3% dari total revenue nasional, sekitar 2,9x lipat state terbesar kedua (Rio de Janeiro).
+- **`health_beauty` adalah kategori paling konsisten unggul**, kategori dengan margin terbaik di 14 dari 27 state, jauh di atas kategori lain.
+- **"At Risk" churn (>180 hari tanpa order) 70,66% dari pelanggan, tapi mayoritas memang one-time buyer yang tidak berniat repeat**, bukan sinyal churn pelanggan loyal yang hilang. Rekomendasi: fokuskan strategi retensi ke segmen yang **pernah** repeat lalu berhenti, bukan ke seluruh populasi At Risk.
+- **Pola musiman bulanan (Sep–Des vs Jan–Agu) belum representatif**, Sep–Des cuma punya 1 tahun data penuh (2016 pendek, 2018 tidak sampai akhir tahun), sedangkan Jan–Agu punya 2 tahun. Perbedaan yang terlihat kemungkinan besar dari jumlah tahun data yang tidak seimbang, bukan pola musiman asli, caveat ini penting supaya tidak salah ambil keputusan.
 
 ## Cara Reproduce
 
@@ -162,22 +162,22 @@ Butuh: PostgreSQL, DBeaver (atau client SQL lain), Python 3.9+, Power BI Desktop
    cd olist-sql-dashboard
    pip install -r requirements.txt
    ```
-2. **Siapkan koneksi database** — buat file `.env` di root (lihat contoh variabel di `notebooks/01_load_to_postgres.ipynb`): `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-3. **Download dataset** — jalankan `notebooks/00_download_data.ipynb` (otomatis lewat `kagglehub`, hasil masuk ke `data/raw/`)
+2. **Siapkan koneksi database**, buat file `.env` di root (lihat contoh variabel di `notebooks/01_load_to_postgres.ipynb`): `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+3. **Download dataset**, jalankan `notebooks/00_download_data.ipynb` (otomatis lewat `kagglehub`, hasil masuk ke `data/raw/`)
 4. **Buat schema & load data**
    - Jalankan `sql/01_schema.sql` di DBeaver (buat 9 tabel raw)
    - Jalankan `notebooks/01_load_to_postgres.ipynb` (load CSV ke Postgres)
-5. **Finalisasi schema** — jalankan `sql/02_finalize_schema.sql` per-STEP (lihat panduan di `docs/fase3_schema_finalization.md`)
-6. **Jalankan query analitis** — file `sql/03` sampai `sql/08`, urutan bebas (tidak saling bergantung)
-7. **Buka dashboard** — buka `dashboard/olist_dashboard.pbix` di Power BI Desktop, arahkan ulang koneksi Postgres ke instance lokal kamu (Power BI akan minta re-enter credentials di query pertama kali dibuka)
+5. **Finalisasi schema**, jalankan `sql/02_finalize_schema.sql` per-STEP (lihat panduan di `docs/fase3_schema_finalization.md`)
+6. **Jalankan query analitis**, file `sql/03` sampai `sql/08`, urutan bebas (tidak saling bergantung)
+7. **Buka dashboard**, buka `dashboard/olist_dashboard.pbix` di Power BI Desktop, arahkan ulang koneksi Postgres ke instance lokal kamu (Power BI akan minta re-enter credentials di query pertama kali dibuka)
 
 ## Temuan Teknis yang Layak Disorot
 
 Beberapa hal yang sengaja dicatat sebagai bahan diskusi teknis (misalnya untuk interview):
 
-- **Bug `NTILE()` yang non-deterministik ditemukan lewat cross-validation SQL vs Python.** Frequency score RFM awalnya pakai `NTILE(5)`, tapi 97% pelanggan punya frequency=1 — kolom yang sangat skewed membuat `NTILE` membagi nilai yang identik ke 5 quintile berbeda secara acak (match rate cuma 22,6% saat divalidasi ulang). Solusi: ganti jadi business-rule `CASE` statement untuk F-score, dan tambahkan tie-breaker deterministik di R & M score. Detail di `docs/methodology.md` poin 6.
-- **Reference date untuk churn harus dihitung dari SEMUA order, bukan cuma yang `delivered`** — kesalahan ini sempat muncul di script validasi Python (bukan di SQL project), dan terkonfirmasi lewat cross-check manual.
-- **Top N filter Power BI tidak reliable saat digabung dengan filter lain pada visual yang sama** — diselesaikan dengan mengganti ke kolom rank hasil `RANKX()` di DAX, difilter manual, alih-alih memakai fitur Top N bawaan.
+- **Bug `NTILE()` yang non-deterministik ditemukan lewat cross-validation SQL vs Python.** Frequency score RFM awalnya pakai `NTILE(5)`, tapi 97% pelanggan punya frequency=1, kolom yang sangat skewed membuat `NTILE` membagi nilai yang identik ke 5 quintile berbeda secara acak (match rate cuma 22,6% saat divalidasi ulang). Solusi: ganti jadi business-rule `CASE` statement untuk F-score, dan tambahkan tie-breaker deterministik di R & M score. Detail di `docs/methodology.md` poin 6.
+- **Reference date untuk churn harus dihitung dari SEMUA order, bukan cuma yang `delivered`**, kesalahan ini sempat muncul di script validasi Python (bukan di SQL project), dan terkonfirmasi lewat cross-check manual.
+- **Top N filter Power BI tidak reliable saat digabung dengan filter lain pada visual yang sama**, diselesaikan dengan mengganti ke kolom rank hasil `RANKX()` di DAX, difilter manual, alih-alih memakai fitur Top N bawaan.
 
 ---
 
