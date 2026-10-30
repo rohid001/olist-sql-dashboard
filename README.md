@@ -4,6 +4,11 @@ Portfolio Data Analyst: dashboard bisnis berbasis **SQL kompleks (CTE, window fu
 
 ![SQL](https://img.shields.io/badge/SQL-PostgreSQL-336791) ![Power BI](https://img.shields.io/badge/Dashboard-Power%20BI-F2C811) ![Python](https://img.shields.io/badge/Data%20Prep-Python-3776AB)
 
+> **Versi Data Engineer:** analisis di repo ini dilanjutkan menjadi pipeline data otomatis di
+> [olist-data-pipeline](https://github.com/rohid001/olist-data-pipeline): ingestion bulanan yang
+> idempotent, dbt dengan 71 test, orkestrasi Airflow, CI GitHub Actions, dan dashboard yang sama
+> kini membaca schema `marts`. Angkanya identik dengan hasil query di repo ini (diperiksa otomatis).
+
 ---
 
 ## Daftar Isi
