@@ -1,134 +1,145 @@
-# Dashboard Bisnis SQL - Olist Brazilian E-Commerce
+# SQL Business Dashboard - Olist Brazilian E-Commerce
 
-Portfolio Data Analyst: dashboard bisnis berbasis **SQL kompleks (CTE, window function, multi-table join)** di atas dataset e-commerce, dibangun untuk menjawab pertanyaan bisnis konkret, bukan sekadar kumpulan chart.
+Data Analyst portfolio project: a business dashboard built on **advanced SQL (CTEs, window functions,
+multi-table joins)** over an e-commerce dataset, designed to answer concrete business questions rather
+than to collect charts.
 
 ![SQL](https://img.shields.io/badge/SQL-PostgreSQL-336791) ![Power BI](https://img.shields.io/badge/Dashboard-Power%20BI-F2C811) ![Python](https://img.shields.io/badge/Data%20Prep-Python-3776AB)
 
+*Bahasa Indonesia: [README.id.md](README.id.md)*
+
+> **Data Engineer version:** the analysis in this repo was extended into an automated data pipeline in
+> [olist-data-pipeline](https://github.com/rohid001/olist-data-pipeline): idempotent monthly ingestion,
+> dbt with 71 tests, Airflow orchestration, GitHub Actions CI, and the same dashboard now reading the
+> `marts` schema. Its numbers match the query results in this repo (checked automatically).
+
 ---
 
-## Daftar Isi
+## Contents
 
-- [Latar Belakang](#latar-belakang)
+- [Background](#background)
 - [Dataset](#dataset)
 - [Business Questions](#business-questions)
 - [Tech Stack](#tech-stack)
-- [Struktur Repo](#struktur-repo)
-- [Metodologi](#metodologi)
+- [Repository Structure](#repository-structure)
+- [Methodology](#methodology)
 - [Dashboard](#dashboard)
-- [Key Insights & Rekomendasi Bisnis](#key-insights--rekomendasi-bisnis)
-- [Cara Reproduce](#cara-reproduce)
-- [Temuan Teknis yang Layak Disorot](#temuan-teknis-yang-layak-disorot)
+- [Key Insights & Business Recommendations](#key-insights--business-recommendations)
+- [How to Reproduce](#how-to-reproduce)
+- [Technical Findings Worth Highlighting](#technical-findings-worth-highlighting)
 
 ---
 
-## Latar Belakang
+## Background
 
-Project ini dibuat untuk mensimulasikan pekerjaan seorang Data Analyst end-to-end: mulai dari merumuskan pertanyaan bisnis, audit kualitas data mentah, menulis SQL analitis, sampai menyajikan hasilnya dalam dashboard interaktif yang bisa dipakai pengambil keputusan.
+This project simulates the end-to-end work of a Data Analyst: framing business questions, auditing the
+quality of raw data, writing analytical SQL, and presenting the results in an interactive dashboard that
+decision makers can use.
 
-Fokus utamanya ada di **kedalaman SQL**, mulai dari RFM segmentation, window function untuk growth rate, dan analisis churn, dengan Power BI berperan sebagai lapisan presentasi.
+The main focus is **SQL depth**: RFM segmentation, window functions for growth rates, and churn
+analysis, with Power BI as the presentation layer.
 
 ## Dataset
 
-**[Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)** sumber dari Kaggle, data transaksi nyata (anonim) dari marketplace terbesar Brasil, periode 2016–2018.
+**[Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)**
+from Kaggle: real (anonymised) transactions from the largest marketplace in Brazil, 2016–2018.
 
 | Item | Detail |
 |---|---|
-| Jumlah order | ~99.441 |
-| Jumlah pelanggan unik | 96.096 (`customer_unique_id`) |
-| Periode | September 2016 – Agustus 2018 |
-| Jumlah file mentah | 9 CSV (customers, orders, order_items, order_payments, order_reviews, products, sellers, geolocation, category translation) |
-| Bahasa asli | Portugis (nama kategori produk) |
+| Orders | ~99,441 |
+| Unique customers | 96,096 (`customer_unique_id`) |
+| Period | September 2016 – August 2018 (analysed *delivered* orders; raw data runs to October 2018) |
+| Raw files | 9 CSV files (customers, orders, order_items, order_payments, order_reviews, products, sellers, geolocation, category translation) |
+| Original language | Portuguese (product category names) |
 
 ## Business Questions
 
-Dashboard ini menjawab pertanyaan bisnis berikut (daftar lengkap 12 pertanyaan di `docs/business_questions.md`):
+The dashboard answers the following business questions (the full list of 12 questions is in
+`docs/business_questions.md`, in Indonesian):
 
-1. **Customer Value** - Siapa pelanggan paling bernilai, dan bagaimana segmentasinya (RFM)?
-2. **Revenue Trend** - Bagaimana tren revenue bulanan, dan kategori apa yang tumbuh/turun dari 2017 ke 2018?
-3. **Seasonality** - Apakah ada pola musiman dalam revenue sepanjang tahun kalender?
-4. **Churn Signal** - Sinyal apa yang menunjukkan pelanggan berisiko churn, dan apakah itu berkorelasi dengan review score?
-5. **Category & Region** - Kategori produk apa yang paling profitable di tiap wilayah, dan wilayah mana yang paling bernilai dari sisi revenue?
+1. **Customer Value** - Who are the most valuable customers, and how are they segmented (RFM)?
+2. **Revenue Trend** - What is the monthly revenue trend, and which categories grew or declined from 2017 to 2018?
+3. **Seasonality** - Is there a seasonal pattern in revenue across the calendar year?
+4. **Churn Signal** - Which signals indicate customers at risk of churning, and do they correlate with review scores?
+5. **Category & Region** - Which product categories are the most profitable in each region, and which regions are the most valuable by revenue?
 
 ## Tech Stack
 
-| Kategori | Tool |
+| Category | Tool |
 |---|---|
 | Database | PostgreSQL |
-| DB Client | DBeaver |
-| Data Loading & Validasi | Python (pandas, SQLAlchemy, psycopg2) di Jupyter Notebook |
+| DB client | DBeaver |
+| Data loading & validation | Python (pandas, SQLAlchemy, psycopg2) in Jupyter Notebook |
 | Dashboard | Power BI Desktop |
-| Sumber Dataset | Kaggle (`kagglehub`) |
-| Versioning | Git + GitHub |
+| Dataset source | Kaggle (`kagglehub`) |
+| Version control | Git + GitHub |
 
-## Struktur Repo
+## Repository Structure
 
 ```
 olist-sql-dashboard/
 ├── data/
-│   ├── raw/                          # 9 CSV asli dari Kaggle (tidak di-commit, lihat .gitignore)
-│   └── processed/                    # hasil export tiap query untuk validasi
+│   ├── raw/                          # 9 original CSV files from Kaggle (not committed, see .gitignore)
+│   └── processed/                    # query results exported for validation (not committed)
 ├── sql/
-│   ├── 01_schema.sql                 # DDL 9 tabel raw (tanpa constraint)
-│   ├── 02_finalize_schema.sql        # PRIMARY KEY, FOREIGN KEY, INDEX, view dedup
+│   ├── 01_schema.sql                 # DDL for 9 raw tables (no constraints)
+│   ├── 02_finalize_schema.sql        # PRIMARY KEY, FOREIGN KEY, INDEX, dedup view
 │   ├── 03_rfm_analysis.sql           # Q1 RFM segmentation, Q2 buyer type
 │   ├── 04_revenue_trend.sql          # Q3 revenue trend, Q4 category growth, Q5 seasonality
 │   ├── 05_churn_indicator.sql        # Q6 churn gap & status, Q7 review score vs churn
-│   ├── 06_category_region_analysis.sql # Q8 kategori per state, Q9 revenue per state
-│   ├── 07_overview_kpi.sql           # agregat KPI untuk Halaman 1 dashboard
-│   └── 08_category_win_count.sql     # pendukung info card kategori unggulan
+│   ├── 06_category_region_analysis.sql # Q8 top category per state, Q9 revenue per state
+│   └── 07_overview_kpi.sql           # KPI aggregates for dashboard page 1
+├── scripts/
+│   └── download-dataset.ipynb        # download the dataset with kagglehub
 ├── notebooks/
-│   ├── 00_download_data.ipynb        # download dataset via kagglehub
-│   ├── 01_load_to_postgres.ipynb     # load 9 CSV ke Postgres
-│   ├── 02_data_audit.ipynb           # audit kualitas data
-│   └── 03_query_validation_viz.ipynb # validasi visual tiap hasil query
+│   ├── 01_load_to_postgres.ipynb     # load the 9 CSV files into Postgres
+│   ├── 02_data_audit.ipynb           # data quality audit
+│   └── 03_query_validation_viz.ipynb # visual validation of every query result
 ├── dashboard/
 │   ├── olist_dashboard.pbix
-│   └── screenshots/
-│       ├── 01_overview.png
-│       ├── 02_customer_rfm.png
-│       ├── 03_revenue_trend.png
-│       ├── 04_churn_risk.png
-│       └── 05_kategori_wilayah.png
+│   └── screenshots/                  # one screenshot per dashboard page
 ├── docs/
-│   ├── business_questions.md
-│   ├── methodology.md
-│   ├── insights_recommendations.md
-│   ├── fase2_data_audit.md
-│   ├── fase3_schema_finalization.md
-│   ├── fase4_query_development.md
-│   ├── fase6_dashboard_building.md
-│   ├── fase6_langkah_build.md
-│   ├── fase6_langkah_build_halaman5.md
-│   └── fase7_dokumentasi_publish.md
+│   ├── business_questions.md         # 12 business questions (in Indonesian)
+│   ├── methodology.md                # design decisions (in Indonesian)
+│   └── insights_recommendations.md   # insights and recommendations (in Indonesian)
 ├── README.md
+├── README.id.md
 ├── requirements.txt
 └── .gitignore
 ```
 
-## Metodologi
+## Methodology
 
-Pendekatan yang dipakai: **audit dulu, baru constrain**, bukan asumsi data bersih dari awal.
+The approach is **audit first, constrain later**, instead of assuming the data is clean from the start.
 
-1. **Layer raw tanpa constraint.** 9 tabel dibuat tanpa `PRIMARY KEY`/`FOREIGN KEY` supaya proses load tidak gagal karena masalah data, dan masalah itu justru yang ingin ditemukan lewat audit, bukan disembunyikan lewat constraint yang menolak baris bermasalah di awal.
-2. **Audit sebelum menulis query analitis** ditemukan: 814 `review_id` duplikat, 2 kategori produk tanpa terjemahan resmi, 775 order tanpa `order_items` (valid, bukan bug).
-3. **Constraint ditambahkan setelah tahu persis letak masalahnya** `PRIMARY KEY`/`FOREIGN KEY`/`INDEX` final, plus `VIEW order_reviews_dedup` untuk menangani duplikasi tanpa mengubah data asli.
-4. **`customer_unique_id`, bukan `customer_id`, dipakai untuk identitas pelanggan** — `customer_id` di dataset ini unik per *order*, bukan per pelanggan; salah pakai kolom ini akan merusak seluruh analisis RFM dan retensi.
+1. **Raw layer without constraints.** The 9 tables are created without `PRIMARY KEY`/`FOREIGN KEY` so
+   the load does not fail on data problems. Those problems are exactly what the audit should find, not
+   hide behind constraints that reject problematic rows up front.
+2. **Audit before writing analytical queries.** Findings: 814 duplicated `review_id` values, 2 product
+   categories without an official translation, and 775 orders without `order_items` (valid, not a bug).
+3. **Constraints added once the problems are known.** Final `PRIMARY KEY`/`FOREIGN KEY`/`INDEX`, plus
+   `VIEW order_reviews_dedup` to handle duplicates without changing the original data.
+4. **`customer_unique_id`, not `customer_id`, identifies a customer.** In this dataset `customer_id` is
+   unique per *order*, not per customer; using it would break every RFM and retention analysis.
 
-Detail lengkap + seluruh keputusan desain ada di [`docs/methodology.md`](docs/methodology.md).
+Full details and every design decision are in [`docs/methodology.md`](docs/methodology.md) (in Indonesian).
 
 ## Dashboard
 
-Dashboard 5 halaman, dibangun dengan mengimpor **hasil query SQL langsung** ke Power BI (Native SQL statement) bukan raw table + hitung ulang pakai DAX. Tujuannya supaya logika bisnis (RFM scoring, growth rate, churn threshold) tetap satu sumber kebenaran di SQL, dan Power BI murni jadi lapisan visualisasi.
+A 5-page dashboard built by importing **SQL query results directly** into Power BI (Native SQL
+statements) instead of raw tables recalculated with DAX. This keeps the business logic (RFM scoring,
+growth rates, churn threshold) in a single source of truth in SQL, with Power BI as a pure
+visualisation layer.
 
-| Halaman | Isi |
+| Page | Contents |
 |---|---|
-| **1. Overview** | KPI utama (revenue, order, pelanggan, AOV, review score), tren revenue bulanan, kategori & state unggulan |
-| **2. Customer & RFM** | Distribusi segmen RFM, kontribusi revenue one-time vs repeat buyer, tabel Top Champions |
-| **3. Revenue Trend** | Tren revenue & growth MoM, top 10 kategori dengan pertumbuhan tertinggi, pola musiman bulanan |
-| **4. Churn Risk** | Status churn pelanggan, perbandingan review score Active vs At Risk, tabel pelanggan berisiko |
-| **5. Kategori & Wilayah** | Revenue per state, top 10 state, kategori dengan margin terbaik per state |
+| **1. Overview** | Main KPIs (revenue, orders, customers, AOV, review score), monthly revenue trend, top category and state |
+| **2. Customer & RFM** | RFM segment distribution, revenue share of one-time vs repeat buyers, Top Champions table |
+| **3. Revenue Trend** | Revenue trend and MoM growth, top 10 fastest-growing categories, monthly seasonality |
+| **4. Churn Risk** | Customer churn status, review score of Active vs At Risk customers, at-risk customer table |
+| **5. Category & Region** | Revenue per state, top 10 states, best-margin category per state |
 
-**Screenshot:**
+**Screenshots:**
 
 | Overview | Customer & RFM |
 |---|---|
@@ -138,47 +149,71 @@ Dashboard 5 halaman, dibangun dengan mengimpor **hasil query SQL langsung** ke P
 |---|---|
 | ![Revenue Trend](dashboard/screenshots/03_revenue_trend.png) | ![Churn Risk](dashboard/screenshots/04_churn_risk.png) |
 
-| Kategori & Wilayah |
+| Category & Region |
 |---|
-| ![Kategori Wilayah](dashboard/screenshots/05_kategori_wilayah.png) |
+| ![Category and Region](dashboard/screenshots/05_kategori_wilayah.png) |
 
-## Key Insights & Rekomendasi Bisnis
+## Key Insights & Business Recommendations
 
-Ringkasan - detail lengkap tiap poin (termasuk angka pendukung) ada di [`docs/insights_recommendations.md`](docs/insights_recommendations.md).
+Summary; full details for each point (including supporting numbers) are in
+[`docs/insights_recommendations.md`](docs/insights_recommendations.md) (in Indonesian).
 
-- **97% pelanggan cuma order sekali.** Basis pelanggan berulang sangat tipis → peluang besar di program retensi/loyalitas dibanding terus akuisisi pelanggan baru.
-- **Revenue sangat terkonsentrasi secara geografis.** São Paulo menyumbang 38,3% dari total revenue nasional — sekitar 2,9x lipat state terbesar kedua (Rio de Janeiro).
-- **`health_beauty` adalah kategori paling konsisten unggul** — kategori dengan margin terbaik di 14 dari 27 state, jauh di atas kategori lain.
-- **"At Risk" churn (>180 hari tanpa order) 70,66% dari pelanggan — tapi mayoritas memang one-time buyer yang tidak berniat repeat**, bukan sinyal churn pelanggan loyal yang hilang. Rekomendasi: fokuskan strategi retensi ke segmen yang **pernah** repeat lalu berhenti, bukan ke seluruh populasi At Risk.
-- **Pola musiman bulanan (Sep–Des vs Jan–Agu) belum representatif** — Sep–Des cuma punya 1 tahun data penuh (2016 pendek, 2018 tidak sampai akhir tahun), sedangkan Jan–Agu punya 2 tahun. Perbedaan yang terlihat kemungkinan besar dari jumlah tahun data yang tidak seimbang, bukan pola musiman asli — caveat ini penting supaya tidak salah ambil keputusan.
+- **97% of customers ordered only once.** The repeat-customer base is very thin, so retention and
+  loyalty programmes offer a bigger opportunity than continuing to acquire new customers.
+- **Revenue is highly concentrated geographically.** São Paulo contributes 38.3% of national revenue,
+  about 2.9 times the second-largest state (Rio de Janeiro).
+- **`health_beauty` is the most consistently leading category**: the best-margin category in 14 of 27
+  states, far ahead of any other category.
+- **"At Risk" churn (more than 180 days without an order) covers 70.66% of customers, but most of them
+  are one-time buyers who never intended to come back**, not loyal customers who were lost.
+  Recommendation: focus retention on customers who **did** repeat and then stopped, not on the whole
+  At Risk population.
+- **The monthly seasonal pattern (Sep–Dec vs Jan–Aug) is not yet representative.** Sep–Dec has only one
+  full year of data (2016 is partial and 2018 ends early), while Jan–Aug has two. The visible difference
+  most likely comes from the unequal number of years, not a real seasonal pattern; this caveat matters to
+  avoid wrong decisions.
 
-## Cara Reproduce
+## How to Reproduce
 
-Butuh: PostgreSQL, DBeaver (atau client SQL lain), Python 3.9+, Power BI Desktop (Windows).
+Requirements: PostgreSQL, DBeaver (or another SQL client), Python 3.9+, Power BI Desktop (Windows).
 
-1. **Clone repo & install dependency Python**
+1. **Clone the repo and install the Python dependencies**
    ```bash
-   git clone <url-repo-ini>
+   git clone https://github.com/rohid001/olist-sql-dashboard.git
    cd olist-sql-dashboard
    pip install -r requirements.txt
    ```
-2. **Siapkan koneksi database** — buat file `.env` di root (lihat contoh variabel di `notebooks/01_load_to_postgres.ipynb`): `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-3. **Download dataset** — jalankan `notebooks/00_download_data.ipynb` (otomatis lewat `kagglehub`, hasil masuk ke `data/raw/`)
-4. **Buat schema & load data**
-   - Jalankan `sql/01_schema.sql` di DBeaver (buat 9 tabel raw)
-   - Jalankan `notebooks/01_load_to_postgres.ipynb` (load CSV ke Postgres)
-5. **Finalisasi schema** — jalankan `sql/02_finalize_schema.sql` per-STEP (lihat panduan di `docs/fase3_schema_finalization.md`)
-6. **Jalankan query analitis** — file `sql/03` sampai `sql/08`, urutan bebas (tidak saling bergantung)
-7. **Buka dashboard** — buka `dashboard/olist_dashboard.pbix` di Power BI Desktop, arahkan ulang koneksi Postgres ke instance lokal kamu (Power BI akan minta re-enter credentials di query pertama kali dibuka)
+2. **Set up the database connection**: create a `.env` file in the root with `DB_HOST`, `DB_PORT`,
+   `DB_NAME`, `DB_USER`, and `DB_PASSWORD` (used by `notebooks/01_load_to_postgres.ipynb`).
+3. **Download the dataset**: run `scripts/download-dataset.ipynb` (automatic via `kagglehub`; the
+   files go to `data/raw/`).
+4. **Create the schema and load the data**
+   - Run `sql/01_schema.sql` in DBeaver (creates the 9 raw tables)
+   - Run `notebooks/01_load_to_postgres.ipynb` (loads the CSV files into Postgres)
+5. **Finalise the schema**: run `sql/02_finalize_schema.sql` step by step (STEP 1 to STEP 4 are marked
+   in the file).
+6. **Run the analytical queries**: `sql/03` to `sql/07`, in any order (they do not depend on each other).
+7. **Open the dashboard**: open `dashboard/olist_dashboard.pbix` in Power BI Desktop and point the
+   Postgres connection to your local instance (Power BI asks for credentials the first time a query
+   runs).
 
-## Temuan Teknis yang Layak Disorot
+## Technical Findings Worth Highlighting
 
-Beberapa hal yang sengaja dicatat sebagai bahan diskusi teknis (misalnya untuk interview):
+A few points recorded on purpose as material for technical discussions (for example, in interviews):
 
-- **Bug `NTILE()` yang non-deterministik ditemukan lewat cross-validation SQL vs Python.** Frequency score RFM awalnya pakai `NTILE(5)`, tapi 97% pelanggan punya frequency=1 — kolom yang sangat skewed membuat `NTILE` membagi nilai yang identik ke 5 quintile berbeda secara acak (match rate cuma 22,6% saat divalidasi ulang). Solusi: ganti jadi business-rule `CASE` statement untuk F-score, dan tambahkan tie-breaker deterministik di R & M score. Detail di `docs/methodology.md` poin 6.
-- **Reference date untuk churn harus dihitung dari SEMUA order, bukan cuma yang `delivered`** — kesalahan ini sempat muncul di script validasi Python (bukan di SQL project), dan terkonfirmasi lewat cross-check manual.
-- **Top N filter Power BI tidak reliable saat digabung dengan filter lain pada visual yang sama** — diselesaikan dengan mengganti ke kolom rank hasil `RANKX()` di DAX, difilter manual, alih-alih memakai fitur Top N bawaan.
+- **A non-deterministic `NTILE()` bug found by cross-validating SQL against Python.** The RFM frequency
+  score first used `NTILE(5)`, but 97% of customers have frequency = 1. On such a skewed column `NTILE`
+  splits identical values randomly into 5 different quintiles (only a 22.6% match rate when re-validated).
+  Fix: a business-rule `CASE` statement for the F score, and deterministic tie-breakers for the R and M
+  scores. Details in `docs/methodology.md`, point 6.
+- **The churn reference date must be computed from ALL orders, not only `delivered` ones.** This mistake
+  appeared in the Python validation script (not in the project SQL) and was confirmed by a manual
+  cross-check.
+- **Power BI's Top N filter is unreliable when combined with other filters on the same visual.** Solved
+  by replacing it with a rank column computed with `RANKX()` in DAX and filtered manually, instead of the
+  built-in Top N feature.
 
 ---
 
-*Dibuat sebagai bagian dari portfolio Data Analyst. Dataset milik Olist, didistribusikan ulang oleh Olist & André Sionek di Kaggle di bawah lisensi CC BY-NC-SA 4.0.*
+*Built as part of a Data Analyst portfolio. The dataset belongs to Olist and is redistributed by Olist &
+André Sionek on Kaggle under the CC BY-NC-SA 4.0 license.*
